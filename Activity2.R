@@ -51,5 +51,11 @@ nrow(datW)
 ncol(datW)
 #specify a column with a proper date format
 #note the format here dataframe$column
+
 datW$dateF <-as.Date(datW$DATE, "%Y-%m-%d")
+
+#create a date column by reformatting the date to only include years
+#and indicating that it should be treated as numeric data
+datW$year <-as.numeric(format(datW$dateF,"%Y"))
+
 
