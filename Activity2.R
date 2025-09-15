@@ -43,3 +43,13 @@ datW <- read.csv("Z:\\stabibian\\github\\data\\noaa_weather\\2011124.csv",
                  stringsAsFactors = T)
 #get more information about the dataframe
 str(datW)
+#find number of rows and columns
+dim(datW)
+#find number of rows in dataset
+nrow(datW)
+#find number of columns in dataset
+ncol(datW)
+#specify a column with a proper date format
+#note the format here dataframe$column
+datW$dateF <-as.Date(datW$DATE, "%Y-%m-%d")
+
