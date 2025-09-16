@@ -57,5 +57,10 @@ datW$dateF <-as.Date(datW$DATE, "%Y-%m-%d")
 #create a date column by reformatting the date to only include years
 #and indicating that it should be treated as numeric data
 datW$year <-as.numeric(format(datW$dateF,"%Y"))
+datW$year
+datW$dateF
+
+
+
 
 
