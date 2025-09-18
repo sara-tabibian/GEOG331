@@ -97,6 +97,8 @@ averageTemp
 #you will have to reference the level output or look at the row of data to see the character designation.
 datW$siteN <- as.numeric(datW$NAME)
 
+par(mfrow=c(2,2))
+
 #make a histogram for the first site in our levels
 #main= is the title name argument.
 #Here you want to paste the actual name of the factor not the numeric index
@@ -108,3 +110,147 @@ hist(datW$TAVE[datW$siteN == 1],
      ylab="Relative frequency",
      col="grey50",
      border="white")
+
+#make a histogram for the first site in our levels, Aberdeen
+#main= is the title name argument.
+#Here you want to paste the actual name of the factor not the numeric index
+#since that will be more meaningful. 
+hist(datW$TAVE[datW$siteN == 1],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[1]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="grey50",
+     border="white")
+#add mean line with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE), 
+       col = "tomato3",
+       lwd = 3)
+#add standard deviation line below the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+#add standard deviation line above the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+####creating histogram for LIVERMORE, CA US####
+
+hist(datW$TAVE[datW$siteN == 2],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[2]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="bisque",
+     border="white")
+
+hist(datW$TAVE[datW$siteN == 2],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[2]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="bisque",
+     border="white")
+#add mean line with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "aquamarine",
+       lwd = 3)
+#add standard deviation line below the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "aquamarine", 
+       lty = 3,
+       lwd = 3)
+#add standard deviation line above the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "", 
+       lty = 3,
+       lwd = 3)
+
+###histogram for MANDAN STATION###
+
+hist(datW$TAVE[datW$siteN == 3],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[3]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="darkseagreen1",
+     border="white")
+
+#make a histogram for the first site in our levels, Aberdeen
+#main= is the title name argument.
+#Here you want to paste the actual name of the factor not the numeric index
+#since that will be more meaningful. 
+hist(datW$TAVE[datW$siteN == 3],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[3]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="darkseagreen1",
+     border="white")
+#add mean line with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "darkorchid1",
+       lwd = 3)
+#add standard deviation line below the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "darkorchid1", 
+       lty = 3,
+       lwd = 3)
+#add standard deviation line above the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "darkorchid1", 
+       lty = 3,
+       lwd = 3)
+
+###histogram for MORMAN FLAT STATION###
+
+hist(datW$TAVE[datW$siteN == 4],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[4]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="lightsalmon",
+     border="white")
+
+#make a histogram for the first site in our levels, Aberdeen
+#main= is the title name argument.
+#Here you want to paste the actual name of the factor not the numeric index
+#since that will be more meaningful. 
+hist(datW$TAVE[datW$siteN == 4],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[4]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="lightsalmon",
+     border="white")
+#add mean line with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "maroon",
+       lwd = 3)
+#add standard deviation line below the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "maroon", 
+       lty = 3,
+       lwd = 3)
+#add standard deviation line above the mean with red (tomato3) color
+#and thickness of 3
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "maroon", 
+       lty = 3,
+       lwd = 3)
+
+
