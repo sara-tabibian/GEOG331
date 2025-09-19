@@ -1,4 +1,4 @@
-#homework 2
+#HOMEWORK 2#
 
 #make a vector of tree heights in meters
 
@@ -59,6 +59,30 @@ datW$dateF <-as.Date(datW$DATE, "%Y-%m-%d")
 datW$year <-as.numeric(format(datW$dateF,"%Y"))
 datW$year
 datW$dateF
+
+#QUESTION 2#
+
+#example vector of character data
+
+character_vector <-c("carbon", "methane", "nitrogen", "phosphorus", "water")
+character_vector
+
+#example vector of numeric data
+
+numeric_vector <-c(1.1, 1.2, 1.3, 1.4, 1.5)
+numeric_vector
+
+#example vector of integer data
+
+integer_vector <-c(1,1,2,3,5,8)
+integer_vector
+
+#example of factor data
+
+shirt_sizes <- factor(c("xs", "s", "l", "xl", "s"),
+                   levels = c("xs", "s", "l", "xl"),
+                   ordered = TRUE)
+shirt_sizes
 
 #find out all unique site names
 unique(datW$NAME)
@@ -309,3 +333,8 @@ points(x.plot,
        col = "cadetblue",
        lwd = 4, 
        lty = 2)
+
+#Question 8#
+
+precip_year <- sum(datW$PRCP, na.rm = TRUE)
+precip_year
