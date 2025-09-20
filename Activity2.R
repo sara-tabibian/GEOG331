@@ -304,6 +304,11 @@ qnorm(0.95,
       mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
       sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
 
+#Question 6#
+1 - pnorm(24,
+          mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+          sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
 ## Question 7 -- PRECIP for Aberdeen ##
 h1 <- hist(datW$PRCP[datW$siteN == 1],
            freq=FALSE, 
@@ -336,5 +341,27 @@ points(x.plot,
 
 #Question 8#
 
-precip_year <- sum(datW$PRCP, na.rm = TRUE)
-precip_year
+#convert dat format
+datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
+datW$dateF <- as.numeric(format(datW$dateF, "%Y"))
+
+annual_precip <- aggregate(datW$PRCP, by=list(site = datW$NAME, year = datW$year), FUN="mean", na.rm = TRUE)
+
+colnames(annual_precip)[3] <- "total_precip"
+colnames(annual_precip) #precip_totals are in the third column
+
+unique(datW$NAME)
+                                
+livermore_precip_hist <- hist(datW$annual_precip[datW$siteN == 1],
+                                          freq=FALSE, 
+                                          main = paste(levels(datW$NAME)[1]),
+                                          xlab = "Annual Precipitation (mm)", 
+                                          ylab="Relative frequency",
+                                          col="grey50",
+                                          border="white")  
+
+ 
+
+
+
+                                
