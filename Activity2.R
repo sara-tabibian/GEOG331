@@ -341,27 +341,49 @@ points(x.plot,
 
 #Question 8#
 
-#convert dat format
-datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
-datW$dateF <- as.numeric(format(datW$dateF, "%Y"))
+#convert date format
+##datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
+#datW$year <- as.numeric(format(datW$dateF, "%Y"))
 
-annual_precip <- aggregate(datW$PRCP, by=list(site = datW$NAME, year = datW$year), FUN="mean", na.rm = TRUE)
+#annual_precip <- aggregate(datW$PRCP, by=list(site = datW$NAME, year = datW$year), FUN="mean", na.rm = TRUE)
 
-colnames(annual_precip)[3] <- "total_precip"
-colnames(annual_precip) #precip_totals are in the third column
-
-unique(datW$NAME)
+#colnames(annual_precip)[3] <- "total_precip"
+#colnames(annual_precip) #precip_totals are in the third column
                                 
-livermore_precip_hist <- hist(datW$annual_precip[datW$siteN == 1],
-                                          freq=FALSE, 
-                                          main = paste(levels(datW$NAME)[1]),
-                                          xlab = "Annual Precipitation (mm)", 
-                                          ylab="Relative frequency",
-                                          col="grey50",
-                                          border="white")  
+#livermore_precip <- hist(annual_precip$total_precip[annual_precip$siteN == 1],
+                                          #freq=FALSE, 
+                                          #main = paste(levels(datW$NAME)[1]),
+                                          #xlab = "Annual Precipitation (mm)", 
+                                          #ylab="Relative frequency",
+                                         # col="grey50",
+                                          #border="white")
 
- 
 
+
+# Convert dates
+datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
+
+# Extract year
+datW$year <- as.numeric(format(datW$dateF, "%Y"))
+
+# Aggregate precipitation by site and year
+annual_precip <- aggregate(datW$PRCP,
+                           by = list(site = datW$NAME, year = datW$year),
+                           FUN = mean, na.rm = TRUE)
+
+# Rename columns
+colnames(annual_precip)[3] <- "total_precip"
+
+# Histogram for the first site
+livermore_precip <- hist(
+  annual_precip$total_precip[annual_precip$site == unique(annual_precip$site)[1]],
+  freq = FALSE,
+  main = unique(annual_precip$site)[1],
+  xlab = "Annual Precipitation (mm)",
+  ylab = "Relative frequency",
+  col = "grey50",
+  border = "white"
+)
 
 
                                 
