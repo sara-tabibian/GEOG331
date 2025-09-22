@@ -369,21 +369,24 @@ datW$year <- as.numeric(format(datW$dateF, "%Y"))
 # Aggregate precipitation by site and year
 annual_precip <- aggregate(datW$PRCP,
                            by = list(site = datW$NAME, year = datW$year),
-                           FUN = mean, na.rm = TRUE)
+                           FUN = sum, na.rm = TRUE)
 
 # Rename columns
 colnames(annual_precip)[3] <- "total_precip"
 
-# Histogram for the first site
+# Histogram livermore
 livermore_precip <- hist(
-  annual_precip$total_precip[annual_precip$site == unique(annual_precip$site)[1]],
+  annual_precip$total_precip[annual_precip$site == unique(annual_precip$site)[2]],
   freq = FALSE,
-  main = unique(annual_precip$site)[1],
+  main = unique(annual_precip$site)[2],
   xlab = "Annual Precipitation (mm)",
   ylab = "Relative frequency",
   col = "grey50",
   border = "white"
 )
 
+#calculate average precipitation for each site
+averagePrecip <- aggregate(datW$PRCP, by=list(datW$NAME), FUN="mean",na.rm=TRUE)
+averagePrecip
 
-                                
+
