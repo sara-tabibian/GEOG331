@@ -339,26 +339,6 @@ points(x.plot,
        lwd = 4, 
        lty = 2)
 
-#Question 8#
-
-#convert date format
-##datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
-#datW$year <- as.numeric(format(datW$dateF, "%Y"))
-
-#annual_precip <- aggregate(datW$PRCP, by=list(site = datW$NAME, year = datW$year), FUN="mean", na.rm = TRUE)
-
-#colnames(annual_precip)[3] <- "total_precip"
-#colnames(annual_precip) #precip_totals are in the third column
-                                
-#livermore_precip <- hist(annual_precip$total_precip[annual_precip$siteN == 1],
-                                          #freq=FALSE, 
-                                          #main = paste(levels(datW$NAME)[1]),
-                                          #xlab = "Annual Precipitation (mm)", 
-                                          #ylab="Relative frequency",
-                                         # col="grey50",
-                                          #border="white")
-
-
 
 # Convert dates
 datW$dateF <- as.Date(datW$DATE, format = "%Y-%m-%d")
