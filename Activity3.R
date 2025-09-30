@@ -66,3 +66,46 @@ datW$DD <- datW$doy + (datW$hour/24)
 datW[1,]
 
 ###CHECKING MISSING DATA###
+
+#see how many values have missing data for each sensor observation
+#air temperature
+length(which(is.na(datW$air.temperature)))
+
+#wind speed
+length(which(is.na(datW$wind.speed)))
+
+#precipitation
+length(which(is.na(datW$precipitation)))
+
+#soil temperature
+length(which(is.na(datW$soil.moisture)))
+
+#soil moisture
+length(which(is.na(datW$soil.temp)))
+
+#make a plot with filled in points (using pch)
+#line lines
+plot(datW$DD, datW$soil.moisture, pch=19, type="b", xlab = "Day of Year",
+     ylab="Soil moisture (cm3 water per cm3 soil)")
+
+
+###SETTING UP TESTS FOR QA/QC###
+
+#make a plot with filled in points (using pch)
+#line lines
+plot(datW$DD, datW$air.temperature, pch=19, type="b", xlab = "Day of Year",
+     ylab="Air temperature (degrees C)")
+
+#the first argument is a logical statement to be evaluated as true or false on a vector
+#the second argument is the value that my air.tempQ1 column will be given if the statement
+#is true. The last value is the value that will be given to air.tempQ1 if the statement is false.
+#In this case it is just given the air temperature value
+datW$air.tempQ1 <- ifelse(datW$air.temperature < 0, NA, datW$air.temperature)
+
+###checking for realistic values###
+#check the values at the extreme range of the data
+#and throughout the percentiles
+quantile(datW$air.tempQ1)
+
+#look at days with really low air temperature
+datW[datW$air.tempQ1 < 8,]  
