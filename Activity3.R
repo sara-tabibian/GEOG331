@@ -131,7 +131,8 @@ points(datW$DD[datW$precipitation > 0], datW$precipitation[datW$precipitation > 
 points(datW$DD[lightscale > 0], lightscale[lightscale > 0],
        col= "tomato3", pch=19)
 
-#COME BACK TO QUESTION 5#
+#QUESTION 5#
+assert(length(lightscale) == nrow(datW), "error: unequal length")
 
 #filter out storms in wind and air temperature measurements
 # filter all values with lightning that coincides with rainfall greater than 2mm or only rainfall over 5 mm.    
@@ -141,3 +142,4 @@ datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0,
 
 #COME BACK TO QUESTION 6#
 
+#help(plot) 
