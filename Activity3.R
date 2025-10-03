@@ -83,11 +83,6 @@ length(which(is.na(datW$soil.moisture)))
 #soil moisture
 length(which(is.na(datW$soil.temp)))
 
-#make a plot with filled in points (using pch)
-#line lines
-plot(datW$DD, datW$soil.moisture, pch=19, type="b", xlab = "Day of Year",
-     ylab="Soil moisture (cm3 water per cm3 soil)")
-
 
 ###SETTING UP TESTS FOR QA/QC###
 
@@ -140,6 +135,25 @@ assert(length(lightscale) == nrow(datW), "error: unequal length")
 datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0, NA,
                           ifelse(datW$precipitation > 5, NA, datW$air.tempQ1))
 
-#COME BACK TO QUESTION 6#
+#QUESTION 6#
 
+#copy data over to new column
+datW$wind.speedQ1 <- datW$wind.speed
+
+#filter suspect wind speeds to NA
+datW$wind.speedQ2 <- ifelse(datW$air.tempQ2, NA, datW$windspeedQ1)
+
+#verify filtering
+expected_na <- is.na(datW$wind.speed) | datW$air.tempQ2
+
+assert(identical(is.na(datW$wind.speedQ2), expected_na), "error: wind.speedQ2 does not match")
+
+#check lengths
+assert(length(datW$wind.speedQ2) == nrow(datW), "error: unequal length: wind.speedQ2 vs datW rows")
+
+n_total <- nrow(datW)
+n_storm <- sum(datW$air.tempQ2, na.rm = TRUE)
+#n_added_na <- sum(is.na(datW$wind.speedQ2), na.rm = TRUE - sum(is.na(datW$wind.speed)), na.rm = TRUE)
 #help(plot) 
+
+plot(datW$DD, datW$wind.speedQ2, pch = 19, xlab = "Day of Year", ylab = "Wind speed (m/s)", type = "n")
