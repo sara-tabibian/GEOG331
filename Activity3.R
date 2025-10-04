@@ -140,20 +140,47 @@ datW$air.tempQ2 <- ifelse(datW$precipitation  >= 2 & datW$lightning.acvitivy >0,
 #copy data over to new column
 datW$wind.speedQ1 <- datW$wind.speed
 
-#filter suspect wind speeds to NA
-datW$wind.speedQ2 <- ifelse(datW$air.tempQ2, NA, datW$windspeedQ1)
+#creating storm conditions variable -- using the same values as the new air temp column
+storm_conditions <- (datW$precipitation >= 2 & datW$lightning.acvitivy > 0 | (datW$precipitation > 5))
 
-#verify filtering
-expected_na <- is.na(datW$wind.speed) | datW$air.tempQ2
+#filtering suspect wind measurements to NA
+datW$wind.speedQ2 <- ifelse(storm_conditions, NA, datW$wind.speedQ1)
 
-assert(identical(is.na(datW$wind.speedQ2), expected_na), "error: wind.speedQ2 does not match")
+#is.na identifies NA values; TRUE indicates the presence of NA value and FALSE indicates a non-missing value
+#verifying that the filtering did what I wanted it to do
+expected_na <- is.na(datW$wind.speed) | storm_conditions
 
-#check lengths
-assert(length(datW$wind.speedQ2) == nrow(datW), "error: unequal length: wind.speedQ2 vs datW rows")
+#identical() tests whether two R objects are exactly equal -- checks for equality in content and attributes and returns a boolean (TRUE if objects are identical)
+#tests if there is equality across all rows
+assert(identical(is.na(datW$wind.speedQ2), expected_na), "error: wind.speedQ2 NA does not match")
 
-n_total <- nrow(datW)
-n_storm <- sum(datW$air.tempQ2, na.rm = TRUE)
-#n_added_na <- sum(is.na(datW$wind.speedQ2), na.rm = TRUE - sum(is.na(datW$wind.speed)), na.rm = TRUE)
-#help(plot) 
+#checks to see if lengths are still the same (like in the other question)
+assert(length(datW$wind.speedQ2) == nrow(datW), "error: unequal length: wind speedQ2 vs datW rows")
 
-plot(datW$DD, datW$wind.speedQ2, pch = 19, xlab = "Day of Year", ylab = "Wind speed (m/s)", type = "n")
+#plotting the new filtered wind speed dataset
+#pch is plotting character
+plot(datW$DD, datW$wind.speedQ2, type = "b", pch = 19, xlab = "Day of Year", ylab = "Wind speed (m/s)")
+
+####QUESTION 7####
+#checking soil temp and moisture measurements to see if they are reliable
+
+#With() evaluates an expression within a specified data environment -- simplifies code by allowing direct access to columns or elements data objectithout repeatedly prefixing them with the data objects name = shortcut 
+#setting same conditions as in the previous question
+#storm mask
+storm <- with(datW, precipitation >= 2 & lightning.acvitivy > 0 | precipitation > 5)
+storm[is.na(storm)] <- FALSE #needs the FALSE otherwise ifelse will show up in the mask
+
+#filtering air temp for storms
+datW$.tempQ2 <- ifelse(storm, NA, datW$air.temperature)
+
+#testing storm-time are NA now
+assert(identical(is.na(datW$air.tempQ2), is.na(datW$air.temperature) | storm), "air.tempQ2 NA mismatch")
+
+#is.finite() determines whether elements of a vector are finite numeric values; TRUE indicates a finite value and FALSE indicates an infinite value or NA (but NA in this case)
+#uses finite pairs to avoid "need finite ylim" -- kind of confused by this - substack*(come back to)
+i<- is.finite(datW$DD) & is.finite(datW$air.tempQ2)
+assert(any(i), "no finite (DD, air.tempQ2) pairs to plot")
+
+#plotting data
+plot(datW$DD[i], datW$air.tempQ2[i], type = "b", pch = 19, xlab = "Day of Year", ylab = "Air Temperature (C)")
+
