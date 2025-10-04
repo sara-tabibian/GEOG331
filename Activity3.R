@@ -162,6 +162,7 @@ assert(length(datW$wind.speedQ2) == nrow(datW), "error: unequal length: wind spe
 plot(datW$DD, datW$wind.speedQ2, type = "b", pch = 19, xlab = "Day of Year", ylab = "Wind speed (m/s)")
 
 ####QUESTION 7####
+
 #checking soil temp and moisture measurements to see if they are reliable
 
 #With() evaluates an expression within a specified data environment -- simplifies code by allowing direct access to columns or elements data objectithout repeatedly prefixing them with the data objects name = shortcut 
@@ -173,14 +174,14 @@ storm[is.na(storm)] <- FALSE #needs the FALSE otherwise ifelse will show up in t
 #filtering air temp for storms
 datW$.tempQ2 <- ifelse(storm, NA, datW$air.temperature)
 
-#testing storm-time are NA now
+#testing storm are NA now
 assert(identical(is.na(datW$air.tempQ2), is.na(datW$air.temperature) | storm), "air.tempQ2 NA mismatch")
 
 #is.finite() determines whether elements of a vector are finite numeric values; TRUE indicates a finite value and FALSE indicates an infinite value or NA (but NA in this case)
 #uses finite pairs to avoid "need finite ylim" -- kind of confused by this - substack*(come back to)
-i<- is.finite(datW$DD) & is.finite(datW$air.tempQ2)
-assert(any(i), "no finite (DD, air.tempQ2) pairs to plot")
+x<- is.finite(datW$DD) & is.finite(datW$air.tempQ2)
+assert(any(x), "no finite (DD, air.tempQ2) pairs to plot")
 
 #plotting data
-plot(datW$DD[i], datW$air.tempQ2[i], type = "b", pch = 19, xlab = "Day of Year", ylab = "Air Temperature (C)")
+plot(datW$DD[x], datW$air.tempQ2[x], type = "b", pch = 19, xlab = "Day of Year", ylab = "Air Temperature (C)")
 
