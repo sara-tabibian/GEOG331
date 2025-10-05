@@ -185,3 +185,20 @@ assert(any(x), "no finite (DD, air.tempQ2) pairs to plot")
 #plotting data
 plot(datW$DD[x], datW$air.tempQ2[x], type = "b", pch = 19, xlab = "Day of Year", ylab = "Air Temperature (C)")
 
+#####QUESTION 8#####
+
+#creating table with average air temperature, wind speed, soil moisture, and soil temperature
+#calculating total precipitation
+#indicating how many observations went into the calculations and the time period of measurement
+
+#using the mean function to calculate the averages for air temp, wind speed, soil temp, and soil moisture
+
+avg_air_temp <- mean(datW$air.tempQ2,na.rm = TRUE)
+avg_wind_speed <- mean(datW$wind.speedQ2, na.rm = TRUE)
+avg_soil_temp <- mean(datW$soil.temp, na.rm = TRUE)
+avg_soil_moist <- mean(datW$soil.moisture, na.rm = TRUE)
+
+#using the sum function to determine how many observations went into the calculation
+
+
+
