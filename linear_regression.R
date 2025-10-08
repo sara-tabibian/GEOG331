@@ -31,4 +31,4 @@ qqline(summary(fit)$residuals, pch=19)
 #use shapiro wilks test to check normality
 shapiro.test(summary(fit)$residuals)
 
-#tesing saving on mac#
+#testing on mac#
