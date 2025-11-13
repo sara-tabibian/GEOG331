@@ -9,6 +9,8 @@ library(tidyverse)
 library(ggplot2)
 library(dplyr)
 library(lubridate)
+library(terra)
+library(readxl)
 
 datW <- datW %>%
   mutate(
@@ -31,3 +33,17 @@ ggplot(pacific_datW, aes(x = cell_ll_lon, y = cell_ll_lat)) + geom_bin2d(bins = 
     x = "longitude", y = "latitude"
   ) + 
   theme_minimal()
+
+
+
+#datQ <- "Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly"
+
+file.list <- list.files(pattern='*.xlsx', recursive = TRUE)
+df.list <- lapply(files.list, "Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly")
+
+
+
+#load bathymetry data
+bathy <- rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
+#crop to pacific islands
+bathy <- crop(bathy, ext(c(120, -120 + 360) %% 360 - 180, c(-40, 40)))
