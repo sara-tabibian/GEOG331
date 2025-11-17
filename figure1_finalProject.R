@@ -11,6 +11,8 @@ library(dplyr)
 library(lubridate)
 library(terra)
 library(readxl)
+library(purrr)
+library(stringr)
 
 datW <- datW %>%
   mutate(
@@ -35,15 +37,86 @@ ggplot(pacific_datW, aes(x = cell_ll_lon, y = cell_ll_lat)) + geom_bin2d(bins = 
   theme_minimal()
 
 
+#load all datasets
+setwd("Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly\\extracted_monthly")
+xlsx_files <- list.files(
+  path = ".",
+  pattern = "\\.csv$",
+  recursive = TRUE,
+  full.names = TRUE
+)
 
-#datQ <- "Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly"
+length(xlsx_files)
+head(xlsx_files)
 
-file.list <- list.files(pattern='*.xlsx', recursive = TRUE)
-df.list <- lapply(files.list, "Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly")
+fleet_data <- map_df(
+  xlsx_files,
+  \(path){
+    df <- read_csv(path)
+    
+    ym <- str_extract(basename(path), "\\d{4}-\\d{2}") #tbh i have no idea what's going on here but it works
+    
+    df |> mutate(year_month = ym)
+  }
+)
+
+#fleet_data
+
+#prep dataset 
+fleet_data <- fleet_data %>%
+  mutate(
+    date = as.Date(date),
+    month = floor_date(date, "month"),
+    year = year(date),
+    geartype = tolower(geartype),
+    mmsi_present = ifelse(is.na(mmsi_present), 0, mmsi_present)
+  )
 
 
+#proxies for suspicion
+df_tuna <- fleet_data %>% filter(geartype %in% tunaGear)
 
+df_tuna <- df_tuna %>%
+  mutate(dark_activity = ifelse(fishing_hours > 0 & mmsi_present == 0, 1, 0))
+
+df_tuna <- df_tuna %>%
+  mutate(illegal_gear_flag = ifelse(!(geartype %in% tunaGear), 1, 0))
+
+cell_stats <- df_tuna %>%
+  group_by(cell_ll_lat, cell_ll_lon) %>%
+  summarise(mean_hours = mean(fishing_hours),
+            sd_hours = sd(fishing_hours))
+
+df_tuna <- df_tuna %>%
+  left_join(cell_stats, by = c("cell_ll_lat", "cell_ll_lon")) %>%
+  mutate(intense_fishing = ifelse(fishing_hours > mean_hours + 2*sd_hours, 1, 0))
+
+#build suspicious score
+df_tuna <- df_tuna %>%
+  mutate(
+    sus_score = 
+      1.5 * dark_activity + 1.0 * intense_fishing
+  )
+
+monthly_sus <- df_tuna %>%
+  group_by(month) %>%
+  summarise(sus_hours = sum(sus_score, na.rm = TRUE))
+
+ggplot(monthly_sus, aes(x=month, y=sus_hours)) + 
+  geom_line(color= "red", linewidth=1.1) +
+  theme_minimal() +
+  labs (
+    title = "suspicious fishing activity",
+    y="suspiciouos score (sum per month)",
+    x="month"
+  )
+            
+            
 #load bathymetry data
 bathy <- rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
 #crop to pacific islands
 bathy <- crop(bathy, ext(c(120, -120 + 360) %% 360 - 180, c(-40, 40)))
+
+#pts <- vect(tunaGear, geom=c("cell_ll_lon", "cell_ll_lat"), crs="EPSG:4326")
+#tunaGear$depth_m <- terra::extract(bathy, pts)[,2]
+
