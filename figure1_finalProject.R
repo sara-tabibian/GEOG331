@@ -111,11 +111,56 @@ ggplot(monthly_sus, aes(x=month, y=sus_hours)) +
     x="month"
   )
             
-            
+#load tuna prices
+fao_raw <- read_csv("Z:\\stabibian\\github\\finalProject\\projectData\\FAO_fish_price_index_Sep2025 (1).csv", skip = 3, col_names = FALSE)
+fao_tuna <- fao_raw %>%
+  rename(
+    date_raw = X1,
+    fao_index = X2,
+    tuna_price = X3
+  ) %>%
+  
+select(date_raw, tuna_price)
+
+
+fao_tuna %>% dplyr::glimpse()
+
+fao_tuna %>%
+  distinct(date_raw) %>%
+  slice(1:20)
+
+#ERRORRRS
+fao_tuna <- fao_tuna %>%
+  mutate (
+    date_clean = date_raw %>%
+      str_trim() %>%
+      str_replace_all("[^A-Za-Z0-9-]", "")
+  )
+
+fao_tuna <- fao_tuna %>%
+  mutate(
+    date = parse_date_time (
+      date_clean,
+      orders = c("y-b", "yb")
+      
+    ) %>% as.Date()
+  )
+
+price %>% slice(1:6)
+
+
+#create plot that compares tuna prices with suspicious score
+
+
 #load bathymetry data
 bathy <- rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
 #crop to pacific islands
-bathy <- crop(bathy, ext(c(120, -120 + 360) %% 360 - 180, c(-40, 40)))
+bathy_pi <- ext(120, 180, -30, 30)
+bathy_crop <- crop(bathy, bathy_pi)
+plot(bathy_crop)
+
+#bathy_df <- as.data.frame(bathy_crop, xy = TRUE, na.rm = TRUE)
+#colnames(bathy_df) <- c("x", "y", "depth")
 
 #pts <- vect(tunaGear, geom=c("cell_ll_lon", "cell_ll_lat"), crs="EPSG:4326")
 #tunaGear$depth_m <- terra::extract(bathy, pts)[,2]
