@@ -260,39 +260,41 @@ df_tuna_pac <- df_tuna %>%
   filter(
     geartype %in% tunaGear,
     cell_ll_lat > -30, cell_ll_lat < 30,
-    (cell_ll_lon >= 120 & cell_ll_long <= 180) |
+    (cell_ll_lon >= 120 & cell_ll_lon <= 180) |
       (cell_ll_lon >= -180 & cell_ll_lon <= -140)
   ) %>%
   
   filter(sus_score > 0)
 
+
 #turn events into spatial objects
 
-pts <- vect(
+pts <- terra::vect(
   df_tuna_pac,
   geom = c("cell_ll_lon", "cell_ll_lat"),
   crs = "EPSG:4326"
 )
 
-#put points and bathy in the same projected CRS
-#load bathymetry data
-bathy <- rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
-
-#crop to pacific islands
-bathy_pi <- ext(120, 180, -30, 30)
-bathy_crop <- crop(bathy, bathy_pi)
 
 #project to mercator
 crs_proj <- "EPSG:3857"
+pts_proj <- terra::project(pts, crs_proj)
 
-bathy_proj <- project(bathy_crop, crs_proj)
-pts_proj <- project(pts, crs_proj)
+#put points and bathy in the same projected CRS
+#load bathymetry data
+bathy <- terra::rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
+
+#crop to pacific islands
+bathy_pi <- terra::ext(120, 180, -30, 30)
+bathy_crop <- terra::crop(bathy, bathy_pi)
+bathy_proj <- terra::project(bathy_crop, crs_proj)
+
 
 #compute kernel density hotspot raster
 #use sus score as the weight field
 #radius ~75km
 
-hot <- density(
+hot <- terra::density(
   pts_proj,
   field = "sus_score",
   radius = 75000
@@ -306,5 +308,11 @@ plot(bathy_proj,
 plot(hot,
      add = TRUE,
      alpha = 0.6)
+
+points(pts_proj,
+       pch = 16,
+       cex = 0.2,
+       col = rgb(0,0,0,0.3))
+
 
 
