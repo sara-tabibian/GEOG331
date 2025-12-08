@@ -1,3 +1,6 @@
+#rm(list = ls())
+#gc()
+
 #load first month of first year (jan 2014) for testing purposes
 datW <- read.csv("Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly-csvs-10-v3-2014\\fleet-monthly-csvs-10-v3-2014-01-01.csv", stringsAsFactors = FALSE)
 
@@ -5,6 +8,7 @@ datW <- read.csv("Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthl
 #install.packages("dplyr")
 #install.packages("lubridate")
 #install.packages("tidyverse")
+#install.packages("terra")
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
@@ -13,8 +17,7 @@ library(terra)
 library(readxl)
 library(purrr)
 library(stringr)
-rm(list = ls())
-gc()
+
 
 datW <- datW %>%
   mutate(
@@ -75,7 +78,7 @@ fleet_data <- fleet_data %>%
   )
 
 
-#proxies for suspicion
+#proxies for suspicion ##
 df_tuna <- fleet_data %>% filter(geartype %in% tunaGear)
 
 df_tuna <- df_tuna %>%
@@ -102,7 +105,7 @@ df_tuna <- df_tuna %>%
 
 monthly_sus <- df_tuna %>%
   group_by(month) %>%
-  summarise(sus_hours = sum(sus_score, na.rm = TRUE))
+  summarise(sus_hours = sum(sus_score, na.rm = TRUE)) ##
 
 ggplot(monthly_sus, aes(x=month, y=sus_hours)) + 
   geom_line(color= "red", linewidth=1.1) +
@@ -114,7 +117,8 @@ ggplot(monthly_sus, aes(x=month, y=sus_hours)) +
   )
             
 #load tuna prices
-fao_raw <- read_csv("Z:\\stabibian\\github\\finalProject\\projectData\\FAO_fish_price_index_Sep2025 (1).csv", skip = 3, col_names = TRUE)
+fao_raw <- read_csv("Z:\\stabibian\\github\\finalProject\\projectData\\FAO_fish_price_index_Sep2025 (1).csv", 
+                    skip = 3, col_names = TRUE)
 
 
 
@@ -126,13 +130,13 @@ fao_tuna <- fao_raw %>%
 ) %>%
 
 
-select(date_raw, tuna_price)
+select(date_raw, tuna_price) ##
 
-fao_tuna %>%
-  distinct(date_raw) %>%
-  slice(1:20)
+#fao_tuna %>%
+  #distinct(date_raw) %>%
+  #slice(1:20)
 
-
+#parse FAO dates
 fao_tuna <- fao_tuna %>%
   mutate(
     date_clean = date_raw %>%
@@ -141,13 +145,57 @@ fao_tuna <- fao_tuna %>%
     date = parse_date_time(
       date_clean,
       orders = c("y-b", "yb")
-    ) %>% as.Date()
+    ) %>% as.Date(),
+    tuna_price = as.numeric(tuna_price)
+  ) %>%
+  filter(!is.na(date), !is.na(tuna_price))
+
+#aggregate to monthly
+monthly_tuna <- fao_tuna %>%
+  mutate(month = floor_date(date, "month")) %>%
+  group_by(month) %>%
+  summarise(
+    tuna_price = mean(tuna_price, na.rm = TRUE),
+    .groups = "drop"
   )
 
+#join
+combined <- monthly_sus %>%
+  inner_join(monthly_tuna, by = "month")
 
-fao_tuna %>% 
-  select(date_raw, date_clean, date) %>%
-  slice(1:10)
+glimpse(combined)
+
+combined_scale <- combined %>%
+  mutate(
+    tuna_z = as.numeric(scale(tuna_price)),
+    sus_z = as.numeric(scale(sus_hours))
+  ) %>%
+  select(month, tuna_z, sus_z) %>%
+  pivot_longer(
+    cols = c(tuna_z, sus_z),
+    names_to = "series",
+    values_to = "value"
+  )
+
+#create graph of combined scale
+ggplot(combined_scale, aes(x = month, y = value, color = series)) +
+  geom_line(linewidth = 1) +
+  scale_color_manual(
+    values = c(tuna_z = "#0072B2", sus_z = "#D55E00"),
+    labels = c(
+      tuna_z = "Tuna price (z-score)",
+      sus_z  = "Suspicious score (z-score)"
+    ),
+    name = NULL
+  ) +
+  labs(
+    title = "Tuna prices vs suspicious fishing score",
+    subtitle = "standardized (z-scores) for direct comparison",
+    x = "Month",
+    y = "Standardized Value (z-score)"
+  ) +
+  theme_grey(base_size = 13)
+
 
 ggplot(fao_tuna, aes(x= date, y = tuna_price)) +
   geom_line(color = "blue", linewidth = 1) +
@@ -161,40 +209,8 @@ ggplot(fao_tuna, aes(x= date, y = tuna_price)) +
 #create plot that compares tuna prices with suspicious score
 
 
-#combined <- df_tuna %>%
- # inner_join(monthly_sus, by = "date")
 
-#combined %>% dplyr::glimpse()
 
-#combined_scaled <- combined %>%
-  #mutate(
-   # tuna_z = as.numeric(scale(tuna_price)),
-   # sus_z  = as.numeric(scale(monthly_sus))
-  )# %>%
- # select(date, tuna_z, sus_z) %>%
- # pivot_longer(
-   # cols = c(tuna_z, sus_z),
-    #names_to = "series",
-    #values_to = "value"
-  )
-
-ggplot(combined_scaled, aes(x = date, y = value, color = series)) +
-  geom_line(linewidth = 1) +
-  scale_color_manual(
-    values = c(tuna_z = "#0072B2", sus_z = "#D55E00"),
-    labels = c(
-      tuna_z = "Tuna price (z-score)",
-      sus_z  = "Suspicious score (z-score)"
-    ),
-    name = NULL
-  ) +
-  labs(
-    title = "Tuna prices vs suspicious fishing score",
-    subtitle = "Both series standardized (z-scores) for direct comparison",
-    x = "Date",
-    y = "Standardized Value"
-  ) +
-  theme_minimal(base_size = 13)
 
 #load bathymetry data
 bathy <- rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
