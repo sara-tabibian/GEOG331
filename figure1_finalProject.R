@@ -167,7 +167,7 @@ glimpse(combined)
 
 combined_scale <- combined %>%
   mutate(
-    tuna_z = as.numeric(scale(tuna_price)),
+    tuna_z = as.numeric(scale(tuna_price)), #puts these two very different variables on same scale
     sus_z = as.numeric(scale(sus_hours))
   ) %>%
   select(month, tuna_z, sus_z) %>%
@@ -196,6 +196,48 @@ ggplot(combined_scale, aes(x = month, y = value, color = series)) +
   ) +
   theme_grey(base_size = 13)
 
+#run analysis on tuna prices vs sus fishing
+
+#correlation
+cor_test <- cor.test(combined$tuna_price, combined$sus_hours, method = "pearson")
+cor_test
+
+#linear regression
+lm <- lm(sus_hours ~ tuna_price, data = combined)
+summary(lm)
+
+#cross correlation up to 6 months lag
+ccf(combined$tuna_price, combined$sus_hours, lag.max = 6, 
+    main="Price-Suspicious Cross-Correlation")
+
+
+#create price_regime column for simplicity
+#create 80th percentile threshold
+p80 <- quantile(combined$tuna_price, 0.80, na.rm = TRUE)
+
+#create high/low label for each month
+combined <- combined %>%
+  mutate(
+    price_regime = ifelse(tuna_price >= p80, "High Price", "Low/Normal Price")
+  )
+
+table(combined$price_regime)
+
+#get p-value
+t.test(sus_hours ~ price_regime, data = combined)
+
+#visual comparison plot
+ggplot(combined, aes(x = price_regime,y = sus_hours, fill = price_regime)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(
+    title = "Suspicious Fishing During High vs Low Tuna Price Periods",
+    x = "Price Regime",
+    y = "Monthly Suspicious Score"
+  ) +
+  scale_fill_manual(values = c("Low/Normal Price"="grey70","High Price"="red")) +
+  theme_minimal()
+
+
 
 ggplot(fao_tuna, aes(x= date, y = tuna_price)) +
   geom_line(color = "blue", linewidth = 1) +
@@ -205,8 +247,6 @@ ggplot(fao_tuna, aes(x= date, y = tuna_price)) +
     y = "Tuna Price"
   ) + 
   theme_minimal(base_size = 13)
-
-#create plot that compares tuna prices with suspicious score
 
 
 
