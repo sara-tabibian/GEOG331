@@ -1,5 +1,5 @@
-#rm(list = ls())
-#gc()
+rm(list = ls())
+gc()
 
 #load first month of first year (jan 2014) for testing purposes
 datW <- read.csv("Z:\\stabibian\\github\\finalProject\\projectData\\fleet-monthly-csvs-10-v3-2014\\fleet-monthly-csvs-10-v3-2014-01-01.csv", stringsAsFactors = FALSE)
@@ -266,53 +266,158 @@ df_tuna_pac <- df_tuna %>%
   
   filter(sus_score > 0)
 
+#check if sus_score is there and numeric
 
-#turn events into spatial objects
+#names(df_tuna_pac)
+#str(df_tuna_pac$sus_score)
 
-pts <- terra::vect(
-  df_tuna_pac,
-  geom = c("cell_ll_lon", "cell_ll_lat"),
-  crs = "EPSG:4326"
-)
-
-
-#project to mercator
-crs_proj <- "EPSG:3857"
-pts_proj <- terra::project(pts, crs_proj)
-
-#put points and bathy in the same projected CRS
+#prep bathy for ggplot -- was orginally going to use terra::density but it's not working
 #load bathymetry data
 bathy <- terra::rast("Z:\\stabibian\\github\\finalProject\\projectData\\bathymetry.tif")
 
 #crop to pacific islands
 bathy_pi <- terra::ext(120, 180, -30, 30)
 bathy_crop <- terra::crop(bathy, bathy_pi)
-bathy_proj <- terra::project(bathy_crop, crs_proj)
+
+#convert to a data frame so that colunms lat, lon, and depth in same space as fishing data
+bathy_df <- as.data.frame(bathy_crop, xy = TRUE, na.rm = TRUE)
+colnames(bathy_df) <- c("lon", "lat", "depth")
 
 
-#compute kernel density hotspot raster
-#use sus score as the weight field
-#radius ~75km
+#use ggplot to deal with kernel density
 
-hot <- terra::density(
-  pts_proj,
-  field = "sus_score",
-  radius = 75000
-)
+ggplot() +
+  geom_raster(data = bathy_df,
+              aes(x = lon, y = lat, fill = depth)) +
+  scale_fill_viridis_c(
+    option = "C",
+    direction = -1,
+    name = "Depth (m)"
+  ) +
+  
+  #hot spot later and kernel density of sus score
+  
+  stat_density_2d(
+    data = df_tuna_pac,
+    aes(x = cell_ll_lon,
+        y = cell_ll_lat,
+        weight = sus_score,
+        fill = after_stat(level)),
+    geom = "polygon",
+    alpha = 0.6,
+    color = NA
+  ) +
+  
+  scale_fill_viridis_c(
+    option = "magma",
+    name = "Suspicious\nDensity",
+    guide = "colorbar"
+  ) +
+  
+  coord_quickmap(xlim = c(120, 180),
+                 ylim = c(-30, 30),
+                 expand = FALSE) +
+  
+  labs(
+    title = "Hotspots of Suspicious Tuna Fishing Activity",
+    subtitle = "kernel density of composite suspicious score over Pacific",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  
+  theme_minimal(base_size = 13)
+  
 
-plot(bathy_proj,
-     col = terrain.colors(50),
-     main = "Hotspots of Suspicious Tuna Fishing Activity")
+#make better lag graph
 
-#add hot spot surface as semi transparent 
-plot(hot,
-     add = TRUE,
-     alpha = 0.6)
+combined <- combined %>%
+  arrange(month) %>%
+  mutate(
+    price_high = ifelse(price_regime == "High Price", 1, 0)
+  )
 
-points(pts_proj,
-       pch = 16,
-       cex = 0.2,
-       col = rgb(0,0,0,0.3))
+
+#check
+
+table(combined$price_regime, combined$price_high)
+
+lags <- 0:6
+lag_df <- map_dfr(lags, \(L){
+  tmp <- combined %>%
+    mutate(price_high_lag = dplyr::lag(price_high, n = L))
+  
+  tibble(
+    lag = L,
+    cor = cor(tmp$sus_hours, tmp$price_high_lag, use = "complete.obs")
+  )
+})
+                  
+
+lag_df
+
+#plot lag graph
+
+ggplot(lag_df, aes(x = lag, y = cor)) +
+  geom_col(fill = "steelblue") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Relationship Lag Between High Price Months and Suspicious Fishing",
+    x = "lag in months (price leads to suspicious activity)",
+    y = "correlation (r)"
+  ) + 
+  
+  theme_minimal(base_size = 13)
+
+#create lag graph for 1 month lag
+
+lag_chosen <- 1
+
+lag_plot_df <- combined %>%
+  arrange(month) %>%
+  mutate(
+    price_high = ifelse(price_regime == "High Price", 1, 0),
+    price_high_lag = dplyr::lag(price_high, n = lag_chosen)
+  ) 
+
+
+#fit the regression model
+fit <- lm(sus_hours ~ price_high_lag, data = lag_plot_df)
+summary_fit <- summary(fit)
+summary(fit)
+
+slope <- coef(fit)["price_high_lag"]
+r2 <- summary_fit$r.squared
+p_value <- summary_fit$coefficients["price_high_lag", "Pr(>|t|)"]
+
+#round
+slope_txt <- round(slope, 2)
+r2_txt <- round(r2, 2)
+p_txt <- signif(p_value, 3)
+p_label <- if (p_value < 0.001) "< 0.001" else as.character(p_txt)
+
+lag_plot <- ggplot(lag_plot_df, aes(x = price_high_lag, y = sus_hours)) +
+  geom_jitter(width = 0.05, height = 0, alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "magenta", linewidth = 1) +
+  scale_x_continuous(breaks = c(0,1),
+                     labels = c("Low/Normal Price", "High Price")) +
+labs(
+  title = paste("Suspicious Fishing vs High Price Indicator (Lag =", lag_chosen, "month)" ),
+  subtitle = paste0("linear model: sus_hours ~ price_high_lag | ",
+  "slope = ", slope_txt,
+  ", R^2 = ", r2_txt,
+  ", p = ", p_label
+),
+  x = "high price indicator (0 = low price month, 1 = high price month",
+  y = "suspicious score (sus_hours)"
+) +
+  theme_minimal(base_size = 13)
+  
+print(lag_plot)
+
+
+
+  
+  
 
 
 
